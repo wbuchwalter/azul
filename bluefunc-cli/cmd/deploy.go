@@ -1,16 +1,37 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/spf13/cobra"
+	"github.com/wbuchwalter/bf/bluefunc"
+)
 
 var deployCmd = &cobra.Command{
 	Use:   "deploy main.go",
 	Short: "deploy the specified file to Azure Function",
 	Long:  `deploy - Compile and deploy the specified go file to azure function`,
 	Run: func(cmd *cobra.Command, args []string) {
-
+		err := preRun(args)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		err = bluefunc.Deploy(args[0])
+		if err != nil {
+			fmt.Println("ERR: ", err)
+		}
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(deployCmd)
+}
+
+func preRun(args []string) error {
+	if len(args) > 1 {
+		return errors.New("Only one file should be passed to deploy.")
+	}
+	return nil
 }
