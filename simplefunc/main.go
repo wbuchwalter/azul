@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/wbuchwalter/bluefunc"
+	"github.com/wbuchwalter/bf/bluefunc"
 )
 
 type message struct {
@@ -14,7 +14,7 @@ type message struct {
 func main() {
 	bluefunc.Handle(func(event json.RawMessage) ([]byte, int) {
 		var m message
-//t
+		//t
 		err := json.Unmarshal(event, &m)
 		if err != nil || m.Name == "" {
 			fmt.Println(err)
