@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/wbuchwalter/lox/cmd/lox/root"
-	"github.com/wbuchwalter/lox/deploy"
+	"github.com/wbuchwalter/lox/function"
 )
 
 var deployCmd = &cobra.Command{
@@ -19,7 +19,7 @@ var deployCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		err = lox.Deploy(args[0])
+		err = function.Deploy(args[0])
 		if err != nil {
 			fmt.Println("ERR: ", err)
 		}
