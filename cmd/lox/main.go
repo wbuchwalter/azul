@@ -14,8 +14,11 @@
 
 package main
 
-import "github.com/wbuchwalter/lox/lox-cli/cmd"
+import (
+	_ "github.com/wbuchwalter/lox/cmd/lox/deploy"
+	"github.com/wbuchwalter/lox/cmd/lox/root"
+)
 
 func main() {
-	cmd.Execute()
+	root.Execute()
 }

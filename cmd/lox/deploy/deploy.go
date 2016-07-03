@@ -1,11 +1,12 @@
-package cmd
+package deploy
 
 import (
 	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/wbuchwalter/lox/lox"
+	"github.com/wbuchwalter/lox/cmd/lox/root"
+	"github.com/wbuchwalter/lox/deploy"
 )
 
 var deployCmd = &cobra.Command{
@@ -26,7 +27,7 @@ var deployCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(deployCmd)
+	root.RootCmd.AddCommand(deployCmd)
 }
 
 func preRun(args []string) error {

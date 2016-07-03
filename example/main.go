@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/wbuchwalter/lox/lox"
+	"github.com/wbuchwalter/lox"
 )
 
 type message struct {
