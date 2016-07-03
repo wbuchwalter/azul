@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/wbuchwalter/bf/bluefunc"
+	"github.com/wbuchwalter/lox/lox"
 )
 
 type message struct {
@@ -12,7 +12,7 @@ type message struct {
 }
 
 func main() {
-	bluefunc.Handle(func(event json.RawMessage) ([]byte, int) {
+	lox.Handle(func(event json.RawMessage) ([]byte, int) {
 		var m message
 		//t
 		err := json.Unmarshal(event, &m)

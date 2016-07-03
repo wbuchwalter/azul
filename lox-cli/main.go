@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/wbuchwalter/bf/bluefunc-cli/cmd"
+import "github.com/wbuchwalter/lox/lox-cli/cmd"
 
 func main() {
 	cmd.Execute()

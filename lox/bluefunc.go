@@ -1,4 +1,4 @@
-package bluefunc
+package lox
 
 import (
 	"encoding/json"

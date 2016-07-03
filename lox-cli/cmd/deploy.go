@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/wbuchwalter/bf/bluefunc"
+	"github.com/wbuchwalter/lox/lox"
 )
 
 var deployCmd = &cobra.Command{
@@ -18,7 +18,7 @@ var deployCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		err = bluefunc.Deploy(args[0])
+		err = lox.Deploy(args[0])
 		if err != nil {
 			fmt.Println("ERR: ", err)
 		}
