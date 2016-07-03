@@ -1,4 +1,4 @@
-package lox
+package core
 
 import (
 	"encoding/json"
