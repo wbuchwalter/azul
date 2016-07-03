@@ -38,23 +38,19 @@ type input struct {
 
 type handlerFn func(req json.RawMessage) ([]byte, int)
 
-func Handle(fn handlerFn) {
+func Handle(fn handlerFn) error {
 	var i input
-	fmt.Println("OPENING FILE")
 	data, err := ioutil.ReadFile("D:/home/site/wwwroot/HttpTriggerCSharp1/tmp")
 	if err != nil {
-		fmt.Println("Cannot read event file: ", err)
+		return err
 	}
 
 	err = json.Unmarshal(data, &i)
 	if err != nil {
-		fmt.Println("ERR UNMARSHALING: ", err)
-		fmt.Println("DATA WAS: ", data)
-		return
+		return err
 	}
 
-	fmt.Println("Body: ", len(string(i.Body)))
 	ret, status := fn(i.Body)
-
-	fmt.Println("Returns: ", string(ret), " Status: ", status)
+	fmt.Println(status, " ", ret)
+	return nil
 }
