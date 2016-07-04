@@ -7,17 +7,28 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/wbuchwalter/lox/auth"
+	"github.com/wbuchwalter/lox/webjobs-sdk/function"
 )
 
-func Deploy(filePath string) error {
-	err := build(filePath)
-	if err != nil {
-		return err
-	}
+func Deploy(functionName string) error {
 
-	authInfo := auth.GetAuthInfo("test", "test")
-	fmt.Println(authInfo)
+	err := deleteFunction(functionName)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// err = build(functionName + "main.go")
+	// if err != nil {
+	// 	return err
+	// }
+
+	// reader, err := os.Open(functionName + "main.exe")
+	// if err != nil {
+	// 	return err
+	// }
+
+	// resp, err := vfs.PushFile(reader, "main.exe")
+	// fmt.Println(resp)
 	return err
 }
 
@@ -27,10 +38,6 @@ func build(filePath string) error {
 	cmd.Stdout = os.Stdout
 	return cmd.Run()
 }
-
-// func
-
-//push to https://${name}.scm.azurewebsites.net/api/vfs/site/wwwroot/${funcName}/${filepath}
 
 type input struct {
 	Body json.RawMessage `json:"body"`
@@ -53,4 +60,8 @@ func Handle(fn handlerFn) error {
 	ret, status := fn(i.Body)
 	fmt.Println(status, " ", ret)
 	return nil
+}
+
+func deleteFunction(functionName string) error {
+	return function.Delete("funcwill")
 }
