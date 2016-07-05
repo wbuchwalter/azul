@@ -30,7 +30,10 @@ var deployCmd = &cobra.Command{
 		err = run(args, wd)
 		if err != nil {
 			fmt.Println(err)
+			return
 		}
+
+		fmt.Println("Succesfully deployed.")
 	},
 }
 
@@ -67,7 +70,7 @@ func checkFunctionSanity(wd string, dirname string) error {
 
 func run(args []string, wd string) error {
 	for i := 0; i < len(args); i++ {
-		err := function.Deploy(wd + "/" + args[i] + "/")
+		err := function.Deploy(args[i], wd+"/"+args[i]+"/")
 		if err != nil {
 			return err
 		}
