@@ -11,30 +11,33 @@ import (
 	"github.com/wbuchwalter/lox/webjobs-sdk/function"
 )
 
-type functionBinary struct {
-	fileName string
-	data     []byte
-}
+var runBin = `using System.Net; using System.Diagnostics; using System; using System.IO; using Newtonsoft.Json; using System.Text; public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log) { Process process = new Process(); process.StartInfo.FileName = "D:/home/site/wwwroot/HttpTriggerCSharp1/main.exe"; var data = await req.Content.ReadAsStringAsync(); await WriteToFileAsync(data, log); //process.StartInfo.Arguments = "-r " + data; process.StartInfo.RedirectStandardOutput = true; process.StartInfo.UseShellExecute = false; process.Start(); string q = ""; while ( ! process.HasExited ) { q += process.StandardOutput.ReadToEnd(); } log.Info(q); return req.CreateResponse(HttpStatusCode.OK, "Hello "); } static async Task WriteToFileAsync(string text, TraceWriter log) { byte[] buffer = Encoding.UTF8.GetBytes(text); log.Info("BUFFER: "+ buffer[0] + " " + buffer[1]); Int32 offset = 0; Int32 sizeOfBuffer = 4096; FileStream fileStream = null; fileStream = new FileStream("D:/home/site/wwwroot/HttpTriggerCSharp1/tmp", FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: sizeOfBuffer, useAsync: true); await fileStream.WriteAsync(buffer, offset, buffer.Length); fileStream.Dispose(); }`
+var defaultFunctionJSONBin = `{ "bindings": [ { "authLevel": "function", "name": "req", "type": "httpTrigger", "direction": "in" }, { "name": "res", "type": "http", "direction": "out" } ], "disabled": false }`
+var projectJSONBin = `{ "frameworks": { "net46":{ "dependencies": { "Newtonsoft.Json": "9.0.1" } } } }`
 
 func Deploy(functionName string, functionDir string) error {
 	bins, err := getBinaries(functionDir)
-	err = delete(functionName)
+	//err = deleteFunction(functionName)
 	if err != nil {
 		return err
 	}
-	return create(functionName, bins)
+	return createFunction(functionName, bins)
 }
 
-func getBinaries(functionDir string) ([]functionBinary, error) {
+func getBinaries(functionDir string) (map[string]string, error) {
+	binMap := make(map[string]string)
 	b, err := build(functionDir + "main.go")
-	mBin := functionBinary{"main.exe", b}
 	if err != nil {
 		return nil, err
 	}
+	binMap["main.exe"] = string(b)
+	binMap["project.json"] = projectJSONBin
+	binMap["run.csx"] = runBin
 
 	//check for function.json
 	if _, err := os.Stat(functionDir + "function.json"); os.IsNotExist(err) {
-		return []functionBinary{mBin}, nil
+		binMap["function.json"] = defaultFunctionJSONBin
+		return binMap, nil
 	}
 
 	rc, err := os.Open(functionDir + "function.json")
@@ -46,8 +49,8 @@ func getBinaries(functionDir string) ([]functionBinary, error) {
 	if err != nil {
 		return nil, err
 	}
-	fBin := functionBinary{"function.json", fB}
-	return []functionBinary{mBin, fBin}, nil
+	binMap["function.json"] = string(fB)
+	return binMap, nil
 }
 
 //build main.go in a temp folder, read the bytes, delete the file
@@ -87,14 +90,15 @@ func getBytes(path string) ([]byte, error) {
 	return bin, nil
 }
 
-func delete(functionName string) error {
+func deleteFunction(functionName string) error {
 	return function.Delete(functionName)
 }
 
-func create(functionName string, bins []functionBinary) error {
-	fmap := make(map[string]string)
-	fmap["run.csx"] = `"hey!"`
-	dto := function.CreateFunctionDTO{Config: json.RawMessage(`{"bindings":[],"disabled":false}`), Files: fmap}
+func createFunction(functionName string, bins map[string]string) error {
+	fnBin := json.RawMessage(bins["function.json"])
+	delete(bins, "function.json")
+
+	dto := function.CreateFunctionDTO{Config: &fnBin, Files: bins}
 	return function.Create(functionName, dto)
 }
 

@@ -17,7 +17,7 @@ type Function struct {
 
 type CreateFunctionDTO struct {
 	Files  map[string]string `json:"files"`
-	Config json.RawMessage   `json:"config"`
+	Config *json.RawMessage  `json:"config"`
 }
 
 //GetFunctions returns the functions inside a function app
@@ -69,7 +69,8 @@ func Create(functionName string, dto CreateFunctionDTO) error {
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	_, err = (&http.Client{}).Do(req)
-
+	resp, err := (&http.Client{}).Do(req)
+	// fmt.Println(string(m))
+	fmt.Println(resp.StatusCode)
 	return err
 }
