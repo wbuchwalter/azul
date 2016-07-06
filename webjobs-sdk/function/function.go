@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -46,14 +45,11 @@ func Delete(functionName string) error {
 	}
 
 	switch resp.StatusCode {
-	case 204: //expected
+	case 204, 404: //expected, 404 means the function didn't existed in the first place
 		return nil
-	case 404:
-		fmt.Println("Warning: Tried to delete unexisting function ", functionName)
 	default:
-		return errors.New("Unhandled error while trying to delete " + functionName + ". Received status " + strconv.Itoa(resp.StatusCode) + ", expected 204.")
+		return errors.New("Unhandled error while trying to delete " + functionName + ". Received status " + strconv.Itoa(resp.StatusCode))
 	}
-
 	return nil
 }
 
@@ -69,8 +65,6 @@ func Create(functionName string, dto CreateFunctionDTO) error {
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	resp, err := (&http.Client{}).Do(req)
-	// fmt.Println(string(m))
-	fmt.Println(resp.StatusCode)
+	_, err = (&http.Client{}).Do(req)
 	return err
 }
