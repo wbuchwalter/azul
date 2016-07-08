@@ -119,23 +119,34 @@ type input struct {
 	Body json.RawMessage `json:"body"`
 }
 
-type handlerFn func(req json.RawMessage) ([]byte, int)
+type handlerFn func(req json.RawMessage) (interface{}, error)
 
-func Handle(fn handlerFn) error {
+func Handle(fn handlerFn) {
 	var i input
 	data, err := ioutil.ReadFile("D:/home/site/wwwroot/HttpTriggerCSharp1/tmp")
 	if err != nil {
-		return err
+		return
 	}
 
 	err = json.Unmarshal(data, &i)
 	if err != nil {
-		return err
+		return
 	}
 
-	ret, _ := fn(i.Body)
-	fmt.Println(string(ret))
-	return nil
+	output, err := fn(i.Body)
+	if err != nil {
+		os.Stderr.WriteString("Error marshaling output: " + err.Error())
+		return
+	}
+
+	json, err := json.Marshal(output)
+	if err != nil {
+		os.Stderr.WriteString("Error marshaling output: " + err.Error())
+		return
+	}
+
+	fmt.Print(string(json))
+	return
 }
 
 //---------------------------------
@@ -145,49 +156,51 @@ func getPredefinedFiles(fnName string) map[string]string {
 	fMap["function.json"] = `{ "bindings": [ { "authLevel": "function", "name": "req", "type": "httpTrigger", "direction": "in" }, { "name": "res", "type": "http", "direction": "out" } ], "disabled": false }`
 	fMap["project.json"] = `{ "frameworks": { "net46":{ "dependencies": { "Newtonsoft.Json": "9.0.1" } } } }`
 	fMap["run.csx"] = `using System.Net;
-	using System.Diagnostics;
-	using System;
-	using System.IO;
-	using Newtonsoft.Json;
-	using System.Text;
+using System.Diagnostics;
+using System;
+using System.IO;
+using Newtonsoft.Json;
+using System.Text;
+using Newtonsoft.Json.Linq;
 
-	public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
-	{
-			Process process = new Process();
-			process.StartInfo.FileName = "D:/home/site/wwwroot/` + fnName + `/main.exe";
+public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
+{
+    Process process = new Process();
+    process.StartInfo.FileName = "D:/home/site/wwwroot/hello/main.exe";
 
-			var data = await req.Content.ReadAsStringAsync();
-			await WriteToFileAsync(data, log);
-			
-			process.StartInfo.RedirectStandardOutput = true;
-			process.StartInfo.UseShellExecute = false;
-			process.Start();
-			string output = "";
-			while ( ! process.HasExited ) {
-					output += process.StandardOutput.ReadToEnd();
-			}
+    var data = await req.Content.ReadAsStringAsync();
+    await WriteToFileAsync(data, log);
+    
+    process.StartInfo.RedirectStandardOutput = true;
+		process.StartInfo.RedirectStandardError = true;
+    process.StartInfo.UseShellExecute = false;
+    process.Start(); 
+    string json = "";
+    string err = "";
+    while ( ! process.HasExited ) {
+        json += process.StandardOutput.ReadToEnd();
+        err += process.StandardError.ReadToEnd();
+    }
 
-			//JObject o = JObject.Parse(output);
+		if(err != "") {
+	    return req.CreateResponse((HttpStatusCode)500, err);
+		} else {
+    	return req.CreateResponse((HttpStatusCode)200, json);			
+		}
+}
 
-			// string something = (string)o["something"];
-			
-			// log.Info(something);
-		
-			return req.CreateResponse(HttpStatusCode.OK, output);
-	}
+static async Task WriteToFileAsync(string text, TraceWriter log)
+{
+    byte[] buffer = Encoding.UTF8.GetBytes(text);
+    log.Info("in:" + text);
+    Int32 offset = 0;
+    Int32 sizeOfBuffer = 4096;
+    FileStream fileStream = null;
 
-	static async Task WriteToFileAsync(string text, TraceWriter log)
-	{
-			byte[] buffer = Encoding.UTF8.GetBytes(text);
-			log.Info("BUFFER: "+ buffer[0] + " " + buffer[1]);
-			Int32 offset = 0;
-			Int32 sizeOfBuffer = 4096;
-			FileStream fileStream = null;
-
-			fileStream = new FileStream("D:/home/site/wwwroot/` + fnName + `/tmp", FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: sizeOfBuffer, useAsync: true);
-			await fileStream.WriteAsync(buffer, offset, buffer.Length);
-			fileStream.Dispose();
-	}`
+    fileStream = new FileStream("D:/home/site/wwwroot/hello/tmp", FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: sizeOfBuffer, useAsync: true);
+    await fileStream.WriteAsync(buffer, offset, buffer.Length);
+    fileStream.Dispose();
+}`
 
 	return fMap
 }

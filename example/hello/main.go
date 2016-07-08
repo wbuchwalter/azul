@@ -2,25 +2,31 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/wbuchwalter/lox/function"
 )
 
-type message struct {
+type input struct {
 	Name string `json:"name"`
 }
 
+type Output struct {
+	Message string `json:"message"`
+	Target  string `json:"target"`
+}
+
 func main() {
-	function.Handle(func(event json.RawMessage) ([]byte, int) {
-		var m message
-		//t
-		err := json.Unmarshal(event, &m)
-		if err != nil || m.Name == "" {
-			fmt.Println(err)
-			return nil, 503
+	function.Handle(func(event json.RawMessage) (interface{}, error) {
+		var i input
+		var output Output
+
+		err := json.Unmarshal(event, &i)
+		if err != nil || i.Name == "" {
+			return nil, err
 		}
 
-		return []byte("Hello " + m.Name), 200
+		output.Message = "Hey!"
+		output.Target = i.Name
+		return output, nil
 	})
 }
