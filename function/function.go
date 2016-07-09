@@ -2,7 +2,6 @@ package function
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -53,7 +52,6 @@ func (f *Function) build() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Build")
 	dst := dir + "/.lox/main.exe"
 	buildCmd := "GOOS=windows GOARCH=386 go build " + "-o " + dst + " " + f.Path + "main.go"
 	cmd := exec.Command("sh", "-c", buildCmd)

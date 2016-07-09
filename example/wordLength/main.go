@@ -7,7 +7,7 @@ import (
 )
 
 type input struct {
-	Name string `json:"name"`
+	Word string `json:"word"`
 }
 
 type Output struct {
@@ -20,12 +20,12 @@ func main() {
 		var output Output
 
 		err := json.Unmarshal(event, &i)
-		if err != nil || i.Name == "" {
+		if err != nil {
 			return nil, err
 		}
 
-		output.Length = len(i.Name)
+		output.Length = len(i.Word)
 
 		return output, nil
-	}, "hello")
+	}, "wordLength")
 }
