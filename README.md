@@ -3,7 +3,7 @@
 ## `lox`: Deploy and run Azure Functions written with Golang.
 
 ## Installation
-Get or update `lox`:
+Get or update lox:
 `go get -u github.com/wbuchwalter/lox/cmd/lox`
 
 ## Example
