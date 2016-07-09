@@ -30,11 +30,45 @@ This configuration file looks like this:
 }
 ```
 
-## Finding your Function App's credentials
+`main.go` is where you define your actual function.
+Here is an example of a function that returns the length of a word:
+```go
+package main
+
+import (
+	"encoding/json"
+
+	"github.com/wbuchwalter/lox"
+)
+
+type input struct {
+	Word string `json:"word"`
+}
+
+type Output struct {
+	Length int `json:"length"`
+}
+
+func main() {
+	lox.Handle(func(event json.RawMessage) (interface{}, error) {
+		var i input
+		var output Output
+
+		err := json.Unmarshal(event, &i)
+		if err != nil || i.Name == "" {
+			return nil, err
+		}
+
+		output.Length = len(i.Word)
+
+		return output, nil
+	}, "hello")
+}
+```
 
 ## Limitations
 
-Currently, `lox` only supports one kind of functions:
+Currently, `lox` only supports one kind of function:
 
 ```
 {
@@ -56,6 +90,11 @@ Currently, `lox` only supports one kind of functions:
 ```
 
 Custom configs are coming eventually.
+
+## FAQ
+
+**Finding your Function App's credentials**
+
 
 ## Credits
 Inspired by [TJ Holowaychuk](https://twitter.com/tjholowaychuk)'s [Apex](https://github.com/apex/apex).
