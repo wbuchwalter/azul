@@ -67,6 +67,9 @@ func main() {
 
 ```
 
+Deploy the function:  
+`lox deploy wordLength`
+
 ## Limitations
 
 Currently, `lox` only supports one kind of function:
