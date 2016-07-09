@@ -1,6 +1,6 @@
 > :warning: **Do not use in production**. `lox` is just a personal experiment at this time, probably full of bugs, and no support will be offered. :warning:
 
-## `lox`: Deploy and run Azure Functions written with Golang.
+## `lox`: Deploy and run Azure Functions using Golang.
 
 ## Installation
 Get or update lox:
