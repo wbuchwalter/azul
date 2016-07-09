@@ -55,15 +55,16 @@ func main() {
 		var output Output
 
 		err := json.Unmarshal(event, &i)
-		if err != nil || i.Name == "" {
+		if err != nil {
 			return nil, err
 		}
 
 		output.Length = len(i.Word)
 
 		return output, nil
-	}, "hello")
+	}, "wordLength")
 }
+
 ```
 
 ## Limitations
