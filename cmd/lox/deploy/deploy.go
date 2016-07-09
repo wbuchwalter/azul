@@ -70,7 +70,8 @@ func checkFunctionSanity(wd string, dirname string) error {
 
 func run(args []string, wd string) error {
 	for i := 0; i < len(args); i++ {
-		err := function.Deploy(args[i], wd+"/"+args[i]+"/")
+		f := function.Function{Name: args[i], Path: wd + "/" + args[i] + "/"}
+		err := f.Deploy()
 		if err != nil {
 			return err
 		}

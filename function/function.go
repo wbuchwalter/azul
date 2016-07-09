@@ -8,47 +8,75 @@ import (
 	"os/exec"
 
 	"github.com/mitchellh/go-homedir"
+	"github.com/wbuchwalter/lox/utils"
 	"github.com/wbuchwalter/lox/webjobs-sdk/function"
 	"github.com/wbuchwalter/lox/webjobs-sdk/vfs"
 )
 
-func Deploy(fnName string, functionDir string) error {
-	fMap := getPredefinedFiles(fnName)
-	err := deleteFunction(fnName)
+type Function struct {
+	Name     string
+	Path     string
+	FilesMap map[string]string
+}
+
+func (f *Function) Deploy() error {
+	err := f.delete()
 	if err != nil {
 		return err
 	}
-	if conf, ok, err := getCustomConfig(functionDir); !ok {
-		if err != nil {
-			return err
-		}
-	} else {
+
+	fMap := f.getPredefinedFiles()
+	if conf, ok, err := f.getCustomConfig(); ok {
 		fMap["function.json"] = conf
+	} else if err != nil {
+		return err
 	}
 
-	err = createFunction(fnName, fMap)
+	f.FilesMap = fMap
+
+	err = f.create()
 	if err != nil {
 		return err
 	}
 
-	bin, err := getBinary(functionDir)
+	bin, err := f.build()
 	if err != nil {
 		return err
 	}
 
-	return uploadBinary(bin, "main.exe", fnName)
+	return f.uploadBinary(bin, "main.exe")
 }
 
-func getBinary(functionDir string) ([]byte, error) {
-	return build(functionDir + "main.go")
+//build main.go in a temp folder, read the bytes, delete the file
+func (f *Function) build() ([]byte, error) {
+	dir, err := homedir.Dir()
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("Build")
+	dst := dir + "/.lox/main.exe"
+	buildCmd := "GOOS=windows GOARCH=386 go build " + "-o " + dst + " " + f.Path + "main.go"
+	cmd := exec.Command("sh", "-c", buildCmd)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	err = cmd.Run()
+	if err != nil {
+		return nil, err
+	}
+	bin, err := utils.GetFileBytes(dst)
+	if err != nil {
+		return nil, err
+	}
+
+	return bin, os.Remove(dst)
 }
 
-func getCustomConfig(functionDir string) (string, bool, error) {
-	if _, err := os.Stat(functionDir + "function.json"); os.IsNotExist(err) {
+func (f *Function) getCustomConfig() (string, bool, error) {
+	if _, err := os.Stat(f.Path + "function.json"); os.IsNotExist(err) {
 		return "", false, nil
 	}
 
-	rc, err := os.Open(functionDir + "function.json")
+	rc, err := os.Open(f.Path + "function.json")
 	defer rc.Close()
 	if err != nil {
 		return "", false, err
@@ -60,97 +88,23 @@ func getCustomConfig(functionDir string) (string, bool, error) {
 	return string(fB), true, nil
 }
 
-//build main.go in a temp folder, read the bytes, delete the file
-func build(filePath string) ([]byte, error) {
-	dir, err := homedir.Dir()
-	if err != nil {
-		return nil, err
-	}
-
-	dst := dir + "/.lox/main.exe"
-	buildCmd := "GOOS=windows GOARCH=386 go build " + "-o " + dst + " " + filePath
-	cmd := exec.Command("sh", "-c", buildCmd)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	err = cmd.Run()
-	if err != nil {
-		return nil, err
-	}
-	bin, err := getBytes(dst)
-	if err != nil {
-		return nil, err
-	}
-
-	return bin, os.Remove(dst)
+func (f *Function) delete() error {
+	return function.Delete(f.Name)
 }
 
-func getBytes(path string) ([]byte, error) {
-	rc, err := os.Open(path)
-	defer rc.Close()
-	if err != nil {
-		return nil, err
-	}
-	bin, err := ioutil.ReadAll(rc)
-	if err != nil {
-		return nil, err
-	}
-	return bin, nil
+func (f *Function) uploadBinary(bin []byte, fileName string) error {
+	return vfs.PushFile(bin, fileName, f.Name)
 }
 
-func deleteFunction(fnName string) error {
-	return function.Delete(fnName)
+func (f *Function) create() error {
+	config := json.RawMessage(f.FilesMap["function.json"])
+	delete(f.FilesMap, "function.json")
+
+	dto := function.CreateFunctionDTO{Config: &config, Files: f.FilesMap}
+	return function.Create(f.Name, dto)
 }
 
-func createFunction(fnName string, fMap map[string]string) error {
-	config := json.RawMessage(fMap["function.json"])
-	delete(fMap, "function.json")
-
-	dto := function.CreateFunctionDTO{Config: &config, Files: fMap}
-	return function.Create(fnName, dto)
-}
-
-func uploadBinary(bin []byte, fileName string, fnName string) error {
-	return vfs.PushFile(bin, fileName, fnName)
-}
-
-//--------------------
-
-type input struct {
-	Body json.RawMessage `json:"body"`
-}
-
-type handlerFn func(req json.RawMessage) (interface{}, error)
-
-func Handle(fn handlerFn) {
-	var i input
-	data, err := ioutil.ReadFile("D:/home/site/wwwroot/HttpTriggerCSharp1/tmp")
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(data, &i)
-	if err != nil {
-		return
-	}
-
-	output, err := fn(i.Body)
-	if err != nil {
-		os.Stderr.WriteString("Error marshaling output: " + err.Error())
-		return
-	}
-
-	json, err := json.Marshal(output)
-	if err != nil {
-		os.Stderr.WriteString("Error marshaling output: " + err.Error())
-		return
-	}
-
-	fmt.Print(string(json))
-	return
-}
-
-//---------------------------------
-func getPredefinedFiles(fnName string) map[string]string {
+func (f *Function) getPredefinedFiles() map[string]string {
 	fMap := make(map[string]string)
 
 	fMap["function.json"] = `{ "bindings": [ { "authLevel": "function", "name": "req", "type": "httpTrigger", "direction": "in" }, { "name": "res", "type": "http", "direction": "out" } ], "disabled": false }`
@@ -166,7 +120,7 @@ using Newtonsoft.Json.Linq;
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {
     Process process = new Process();
-    process.StartInfo.FileName = "D:/home/site/wwwroot/hello/main.exe";
+    process.StartInfo.FileName = "D:/home/site/wwwroot/` + f.Name + `/main.exe";
 
     var data = await req.Content.ReadAsStringAsync();
     await WriteToFileAsync(data, log);
@@ -197,7 +151,7 @@ static async Task WriteToFileAsync(string text, TraceWriter log)
     Int32 sizeOfBuffer = 4096;
     FileStream fileStream = null;
 
-    fileStream = new FileStream("D:/home/site/wwwroot/hello/tmp", FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: sizeOfBuffer, useAsync: true);
+    fileStream = new FileStream("D:/home/site/wwwroot/` + f.Name + `/tmp", FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: sizeOfBuffer, useAsync: true);
     await fileStream.WriteAsync(buffer, offset, buffer.Length);
     fileStream.Dispose();
 }`

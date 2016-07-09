@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/wbuchwalter/lox/function"
+	"github.com/wbuchwalter/lox"
 )
 
 type input struct {
@@ -11,12 +11,11 @@ type input struct {
 }
 
 type Output struct {
-	Message string `json:"message"`
-	Target  string `json:"target"`
+	Length int `json:"length"`
 }
 
 func main() {
-	function.Handle(func(event json.RawMessage) (interface{}, error) {
+	lox.Handle(func(event json.RawMessage) (interface{}, error) {
 		var i input
 		var output Output
 
@@ -25,8 +24,8 @@ func main() {
 			return nil, err
 		}
 
-		output.Message = "Hey!"
-		output.Target = i.Name
+		output.Length = len(i.Name)
+
 		return output, nil
-	})
+	}, "hello")
 }

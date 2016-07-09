@@ -2,7 +2,8 @@
 
 
 ### Next steps:
-* Define a return type standard (a Go struct that is then returned as json ? status code etc.)
+* Force nuget restore
+* Return url of the created function
 * clean run.csx
 * clean code
 * unit tests
