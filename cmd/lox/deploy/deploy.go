@@ -11,7 +11,7 @@ import (
 )
 
 var deployCmd = &cobra.Command{
-	Use:   "deploy main.go",
+	Use:   "deploy funcname",
 	Short: "deploy the specified function to Azure",
 	Long:  `deploy - Compile and deploy the specified go function to Azure`,
 	Run: func(cmd *cobra.Command, args []string) {

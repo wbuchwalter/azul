@@ -1,4 +1,4 @@
-package function
+package functionClient
 
 import (
 	"bytes"
@@ -9,18 +9,8 @@ import (
 	"strconv"
 )
 
-//Function struct describe an Azure Functions
-type Function struct {
-	Name string
-}
-
-type CreateFunctionDTO struct {
-	Files  map[string]string `json:"files"`
-	Config *json.RawMessage  `json:"config"`
-}
-
 //GetFunctions returns the functions inside a function app
-func GetFunctions(appName string) ([]Function, error) {
+func GetFunctions(appName string) ([]string, error) {
 	resp, err := http.Get("https://$funcwill:2xXQ3heWo7dD3mSmlvLhZnwzqJXMmrwHxugRCrnAnCb0idmo2vXCbiLMqqtY@funcwill.scm.azurewebsites.net/api/functions")
 	if err != nil {
 		return nil, err
@@ -28,7 +18,7 @@ func GetFunctions(appName string) ([]Function, error) {
 	defer resp.Body.Close()
 	buffer, err := ioutil.ReadAll(resp.Body)
 
-	var data []Function
+	var data []string
 	return data, json.Unmarshal(buffer, &data)
 }
 
@@ -53,13 +43,19 @@ func Delete(functionName string) error {
 	return nil
 }
 
+type CreateFunctionInput struct {
+	FunctionName string            `json:"-"`
+	Files        map[string]string `json:"files"`
+	Config       *json.RawMessage  `json:"config"`
+}
+
 //Create create a new function within a function app
-func Create(functionName string, dto CreateFunctionDTO) error {
-	m, err := json.Marshal(&dto)
+func Create(input CreateFunctionInput) error {
+	m, err := json.Marshal(&input)
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest(http.MethodPut, "https://$funcwill:2xXQ3heWo7dD3mSmlvLhZnwzqJXMmrwHxugRCrnAnCb0idmo2vXCbiLMqqtY@funcwill.scm.azurewebsites.net/api/functions/"+functionName, bytes.NewBuffer(m))
+	req, err := http.NewRequest(http.MethodPut, "https://$funcwill:2xXQ3heWo7dD3mSmlvLhZnwzqJXMmrwHxugRCrnAnCb0idmo2vXCbiLMqqtY@funcwill.scm.azurewebsites.net/api/functions/"+input.FunctionName, bytes.NewBuffer(m))
 	if err != nil {
 		return err
 	}

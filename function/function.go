@@ -7,42 +7,63 @@ import (
 	"os/exec"
 
 	"github.com/mitchellh/go-homedir"
+	"github.com/wbuchwalter/lox/service/function"
+	"github.com/wbuchwalter/lox/service/vfs"
 	"github.com/wbuchwalter/lox/utils"
-	"github.com/wbuchwalter/lox/webjobs-sdk/function"
-	"github.com/wbuchwalter/lox/webjobs-sdk/vfs"
 )
 
+//Function represents an Azure Function
 type Function struct {
-	Name     string
-	Path     string
-	FilesMap map[string]string
+	Config
+	Name string
+	Path string
 }
 
+//Config represents a function's configuration (function.json)
+type Config struct {
+	Bindings []Binding `json:"bindings"`
+	Disabled bool      `json:"disabled"`
+}
+
+//Binding represents a function's binding
+type Binding struct {
+	AuthLevel string `json:"authLevel"`
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	Direction string `json:"direction"`
+}
+
+type filesMap map[string]string
+
+//Deploy (re)deploys a function inside a functionApp
 func (f *Function) Deploy() error {
-	err := f.delete()
+	err := f.loadConfig()
 	if err != nil {
 		return err
 	}
 
 	fMap := f.getPredefinedFiles()
-	if conf, ok, err := f.getCustomConfig(); ok {
-		fMap["function.json"] = conf
-	} else if err != nil {
-		return err
-	}
 
-	f.FilesMap = fMap
-
-	err = f.create()
-	if err != nil {
-		return err
-	}
-
+	//build before anything else.
+	//If the custom code doesn't build, we can fail cleanly without impacting what is already deployed
 	bin, err := f.build()
 	if err != nil {
 		return err
 	}
 
+	//delete the function if it already exists
+	err = f.delete()
+	if err != nil {
+		return err
+	}
+
+	//create the function and push config + predefined files
+	err = f.create(fMap)
+	if err != nil {
+		return err
+	}
+
+	//upload the heavier executable
 	return f.uploadBinary(bin, "main.exe")
 }
 
@@ -69,43 +90,53 @@ func (f *Function) build() ([]byte, error) {
 	return bin, os.Remove(dst)
 }
 
-func (f *Function) getCustomConfig() (string, bool, error) {
+func (f *Function) loadConfig() error {
+	f.defaults()
 	if _, err := os.Stat(f.Path + "function.json"); os.IsNotExist(err) {
-		return "", false, nil
+		return nil
 	}
 
 	rc, err := os.Open(f.Path + "function.json")
 	defer rc.Close()
 	if err != nil {
-		return "", false, err
+		return err
 	}
-	fB, err := ioutil.ReadAll(rc)
+	b, err := ioutil.ReadAll(rc)
 	if err != nil {
-		return "", false, err
+		return err
 	}
-	return string(fB), true, nil
+
+	return json.Unmarshal(b, f.Config)
+}
+
+func (f *Function) defaults() {
+	f.Config.Disabled = false
+	f.Config.Bindings = []Binding{
+		Binding{AuthLevel: "function", Name: "req", Type: "httpTrigger", Direction: "in"},
+		Binding{Name: "res", Type: "http", Direction: "out"},
+	}
 }
 
 func (f *Function) delete() error {
-	return function.Delete(f.Name)
+	return functionClient.Delete(f.Name)
 }
 
 func (f *Function) uploadBinary(bin []byte, fileName string) error {
-	return vfs.PushFile(bin, fileName, f.Name)
+	return vfsClient.PushFile(bin, fileName, f.Name)
 }
 
-func (f *Function) create() error {
-	config := json.RawMessage(f.FilesMap["function.json"])
-	delete(f.FilesMap, "function.json")
-
-	dto := function.CreateFunctionDTO{Config: &config, Files: f.FilesMap}
-	return function.Create(f.Name, dto)
+func (f *Function) create(fMap filesMap) error {
+	config, err := json.Marshal(f.Config)
+	if err != nil {
+		return err
+	}
+	rm := json.RawMessage(config)
+	return functionClient.Create(functionClient.CreateFunctionInput{FunctionName: f.Name, Config: &rm, Files: fMap})
 }
 
-func (f *Function) getPredefinedFiles() map[string]string {
-	fMap := make(map[string]string)
+func (f *Function) getPredefinedFiles() filesMap {
+	fMap := make(filesMap)
 
-	fMap["function.json"] = `{ "bindings": [ { "authLevel": "function", "name": "req", "type": "httpTrigger", "direction": "in" }, { "name": "res", "type": "http", "direction": "out" } ], "disabled": false }`
 	fMap["project.json"] = `{ "frameworks": { "net46":{ "dependencies": { "Newtonsoft.Json": "9.0.1" } } } }`
 	fMap["run.csx"] = `using System.Net;
 using System.Diagnostics;
