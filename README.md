@@ -93,9 +93,9 @@ Custom configs are probably coming... eventually :smiley: .
 
 ## FAQ
 
-**Finding your Function App's credentials**
-In the Azure portal, open your `Function App`, click on `Function App Settings` -> `Advanced Settings`-> `Properties`-> `DEPLOYMENT TRIGGER URL`.
-The URL will look like this: `https://XXX:YYY@something.scm.azurewebsites.net/deploy`
+**Finding your Function App's credentials**  
+In the Azure portal, open your `Function App`, click on `Function App Settings` -> `Advanced Settings`-> `Properties`-> `DEPLOYMENT TRIGGER URL`.  
+The URL will look like this: `https://XXX:YYY@something.scm.azurewebsites.net/deploy`  
 `XXX` is your username (you need to include the `$` if any), `YYY` is your password.
 
 **Performance**  
