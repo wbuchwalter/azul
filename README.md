@@ -1,5 +1,12 @@
 # lox
 
+> :warning: **Do not use in production**. `lox` is just an experiment currently, probably full of bugs, and no support will be offered. :warning:
+
+## Getting Started
+
+## Credits
+Inspired by [TJ Holowaychuk](https://twitter.com/tjholowaychuk)'s [Apex](https://github.com/apex/apex).
+
 
 ### Next steps:
 * Force nuget restore
