@@ -1,4 +1,4 @@
-> :warning: **Do not use in production**. `lox` is just an experiment at this time, probably full of bugs, and no support will be offered. :warning:
+> :warning: **Do not use in production**. `lox` is just a personal experiment at this time, probably full of bugs, and no support will be offered. :warning:
 
 ## `lox`: Deploy and run Azure Functions written with Golang.
 
@@ -95,20 +95,14 @@ Custom configs are probably coming... eventually :smiley: .
 
 **Finding your Function App's credentials**
 
+**Performance**
+Zero efforts have been put in optimization, and no benchmark has been made. So I have no idea about the performances of `lox`.
+
+**Why name it `lox`?**
+Why not?
+
+
+
 
 ## Credits
 Inspired by [TJ Holowaychuk](https://twitter.com/tjholowaychuk)'s [Apex](https://github.com/apex/apex).
-
-
-### Next steps:
-* Force nuget restore
-* Return url of the created function
-* clean run.csx
-* clean code
-* unit tests
-* Documentation
-* Publish
-* expose commands (delete etc.)
-* add commands (monitoring etc)
-* allow multiple functions to be deployed at once
-* Any way to reduce upload time of main.exe?
