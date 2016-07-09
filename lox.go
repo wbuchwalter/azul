@@ -17,17 +17,19 @@ func Handle(fn handlerFn, fnName string) {
 	var i input
 	data, err := ioutil.ReadFile("D:/home/site/wwwroot/" + fnName + "/tmp")
 	if err != nil {
+		os.Stderr.WriteString("Error reading function's input: " + err.Error())
 		return
 	}
 
 	err = json.Unmarshal(data, &i)
 	if err != nil {
+		os.Stderr.WriteString("Error unmarshalling function's input: " + err.Error())
 		return
 	}
 
 	output, err := fn(i.Body)
 	if err != nil {
-		os.Stderr.WriteString("Error marshaling output: " + err.Error())
+		os.Stderr.WriteString("Error executing the function: " + err.Error())
 		return
 	}
 
