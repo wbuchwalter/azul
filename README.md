@@ -89,7 +89,7 @@ Currently, `lox` only supports one kind of function:
 }
 ```
 
-Custom configs are coming eventually.
+Custom configs are probably coming... eventually :smiley: .
 
 ## FAQ
 
