@@ -7,8 +7,6 @@ import (
 	"os/exec"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/wbuchwalter/lox/service/function"
-	"github.com/wbuchwalter/lox/service/vfs"
 	"github.com/wbuchwalter/lox/utils"
 )
 
@@ -27,48 +25,17 @@ type Config struct {
 
 //Binding represents a function's binding
 type Binding struct {
-	AuthLevel string `json:"authLevel"`
-	Name      string `json:"name"`
-	Type      string `json:"type"`
-	Direction string `json:"direction"`
+	AuthLevel   string `json:"authLevel"`
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	Direction   string `json:"direction"`
+	WebHookType string `json:"webHookType"`
 }
 
 type filesMap map[string]string
 
-//Deploy (re)deploys a function inside a functionApp
-func (f *Function) Deploy() error {
-	err := f.loadConfig()
-	if err != nil {
-		return err
-	}
-
-	fMap := f.getPredefinedFiles()
-
-	//build before anything else.
-	//If the custom code doesn't build, we can fail cleanly without impacting what is already deployed
-	bin, err := f.build()
-	if err != nil {
-		return err
-	}
-
-	//delete the function if it already exists
-	err = f.delete()
-	if err != nil {
-		return err
-	}
-
-	//create the function and push config + predefined files
-	err = f.create(fMap)
-	if err != nil {
-		return err
-	}
-
-	//upload the heavier executable
-	return f.uploadBinary(bin, "main.exe")
-}
-
-//build main.go in a temp folder, read the bytes, delete the file
-func (f *Function) build() ([]byte, error) {
+//Build main.go in a temp folder, read the bytes, delete the file
+func (f *Function) Build() ([]byte, error) {
 	dir, err := homedir.Dir()
 	if err != nil {
 		return nil, err
@@ -90,7 +57,9 @@ func (f *Function) build() ([]byte, error) {
 	return bin, os.Remove(dst)
 }
 
-func (f *Function) loadConfig() error {
+// LoadConfig loads the config of the function stored in function.json.
+// If no function.json is present, this will fallback to default values
+func (f *Function) LoadConfig() error {
 	f.defaults()
 	if _, err := os.Stat(f.Path + "function.json"); os.IsNotExist(err) {
 		return nil
@@ -106,7 +75,7 @@ func (f *Function) loadConfig() error {
 		return err
 	}
 
-	return json.Unmarshal(b, f.Config)
+	return json.Unmarshal(b, &f.Config)
 }
 
 func (f *Function) defaults() {
@@ -117,30 +86,15 @@ func (f *Function) defaults() {
 	}
 }
 
-func (f *Function) delete() error {
-	return functionClient.Delete(f.Name)
-}
-
-func (f *Function) uploadBinary(bin []byte, fileName string) error {
-	return vfsClient.PushFile(bin, fileName, f.Name)
-}
-
-func (f *Function) create(fMap filesMap) error {
-	config, err := json.Marshal(f.Config)
-	if err != nil {
-		return err
-	}
-	rm := json.RawMessage(config)
-	return functionClient.Create(functionClient.CreateFunctionInput{FunctionName: f.Name, Config: &rm, Files: fMap})
-}
-
-func (f *Function) getPredefinedFiles() filesMap {
+// GetPredefinedFiles returns predefined files
+func (f *Function) GetPredefinedFiles() filesMap {
 	fMap := make(filesMap)
 
 	fMap["project.json"] = `{ "frameworks": { "net46":{ "dependencies": { "Newtonsoft.Json": "9.0.1" } } } }`
 	fMap["run.csx"] = `using System.Net;
 using System.Diagnostics;
 using System;
+using System.Text.RegularExpressions;
 using System.IO;
 using Newtonsoft.Json;
 using System.Text;
@@ -165,10 +119,14 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         err += process.StandardError.ReadToEnd();
     }
 
-		if(err != "") {
-	    return req.CreateResponse((HttpStatusCode)500, err);
+		Regex regex = new Regex(@"^\[Error\]");
+		Match match = regex.Match(err);
+		if (match.Success) {
+			log.Error(err);
+			return req.CreateResponse((HttpStatusCode)500, err);
 		} else {
-    	return req.CreateResponse((HttpStatusCode)200, json);			
+			log.Info(err);
+			return req.CreateResponse((HttpStatusCode)200, json);	
 		}
 }
 

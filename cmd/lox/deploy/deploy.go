@@ -1,11 +1,14 @@
 package deploy
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/wbuchwalter/lox/app"
 	"github.com/wbuchwalter/lox/cmd/lox/root"
 	"github.com/wbuchwalter/lox/function"
 )
@@ -69,12 +72,37 @@ func checkFunctionSanity(wd string, dirname string) error {
 }
 
 func run(args []string, wd string) error {
+	app, err := getApp(wd)
+	if err != nil {
+		return err
+	}
+
 	for i := 0; i < len(args); i++ {
 		f := function.Function{Name: args[i], Path: wd + "/" + args[i] + "/"}
-		err := f.Deploy()
+		err := app.Deploy(&f)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func getApp(wd string) (*app.App, error) {
+	file, err := os.Open(wd + "/lox.json")
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	var app app.App
+	err = json.Unmarshal(b, &app)
+	if err != nil {
+		return nil, err
+	}
+
+	return &app, nil
 }

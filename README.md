@@ -50,7 +50,7 @@ type Output struct {
 }
 
 func main() {
-	lox.Handle(func(event json.RawMessage) (interface{}, error) {
+	lox.Handle(func(event json.RawMessage, logger logs.Logger) (interface{}, error) {
 		var i input
 		var output Output
 
@@ -58,7 +58,8 @@ func main() {
 		if err != nil {
 			return nil, err
 		}
-
+    
+    logger.Log("New request received, length: " + len(i.Word))
 		output.Length = len(i.Word)
 
 		return output, nil
@@ -71,6 +72,8 @@ Deploy the function:
 `lox deploy wordLength`
 
 ## Limitations
+
+**Configuration**  
 
 Currently, `lox` only supports one kind of function:
 
@@ -94,6 +97,13 @@ Currently, `lox` only supports one kind of function:
 ```
 
 Custom configs are probably coming... eventually :smiley: .
+
+**fmt**
+
+Do not use `fmt.Println` or similar functions writting to `stdin`.   
+`stdin` is reserver by `lox` to communicate between the go function and the runtime.
+Instead use the logger passed as parameter to your function.
+
 
 ## FAQ
 
