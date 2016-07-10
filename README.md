@@ -100,7 +100,7 @@ Custom configs are probably coming... eventually :smiley: .
 
 **fmt**
 
-Do not use `fmt.Println` or similar functions writting to `stdin`.   
+Do not use `fmt.Println` or similar functions writing to `stdin`.   
 `stdin` is reserver by `lox` to communicate between the go function and the runtime.
 Instead use the logger passed as parameter to your function.
 
