@@ -58,7 +58,7 @@ func main() {
 		if err != nil {
 			return nil, err
 		}
-    
+		
     		logger.Log("New request received, length: " + len(i.Word))
 		output.Length = len(i.Word)
 
