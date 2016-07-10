@@ -75,28 +75,9 @@ Deploy the function:
 
 **Configuration**  
 
-Currently, `lox` only supports one kind of function:
+Currently, `lox` only supports functions taking a request message as input (such as `httpTrigger`, `webHook`)
 
-```
-{
-  "bindings": [
-    {
-      "authLevel": "function",
-      "name": "req",
-      "type": "httpTrigger",
-      "direction": "in"
-    },
-    {
-      "name": "res",
-      "type": "http",
-      "direction": "out"
-    }
-  ],
-  "disabled": false
-}
-```
-
-Custom configs are probably coming... eventually :smiley: .
+More are probably coming... eventually :smiley: .
 
 **fmt**
 
