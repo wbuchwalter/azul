@@ -50,6 +50,7 @@ func (app *App) Deploy(f *function.Function) error {
 	return app.forceNugetRestore(f.Name, fMap["project.json"])
 }
 
+//CreateFunctionInput : input for app.create
 type CreateFunctionInput struct {
 	FunctionName string            `json:"-"`
 	Files        map[string]string `json:"files"`
@@ -108,7 +109,6 @@ func (app *App) Delete(functionName string) error {
 	default:
 		return errors.New("Unhandled error while trying to delete " + functionName + ". Received status " + strconv.Itoa(resp.StatusCode))
 	}
-	return nil
 }
 
 //PushFile uploads a binary to the specified function

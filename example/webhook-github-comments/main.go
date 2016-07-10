@@ -33,5 +33,5 @@ func main() {
 
 		out.Body = "New GitHub comment: " + in.Comment.Body
 		return out, nil
-	}, "webhook-github-comments")
+	})
 }

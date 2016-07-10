@@ -63,7 +63,7 @@ func main() {
 		output.Length = len(i.Word)
 
 		return output, nil
-	}, "wordLength")
+	})
 }
 
 ```

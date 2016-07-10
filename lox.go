@@ -11,13 +11,14 @@ import (
 
 type handlerFn func(req json.RawMessage, logger logs.Logger) (interface{}, error)
 
-func Handle(fn handlerFn, fnName string) {
-	input, err := ioutil.ReadFile("D:/home/site/wwwroot/" + fnName + "/tmp")
+var functionName string
+
+func Handle(fn handlerFn) {
+	input, err := ioutil.ReadFile("D:/home/site/wwwroot/" + functionName + "/tmp")
 	if err != nil {
 		os.Stderr.WriteString("[Error] reading function's input: " + err.Error())
 		return
 	}
-
 	logger := logs.Logger{Logs: make(chan string, 200)}
 
 	output, err := fn(input, logger)

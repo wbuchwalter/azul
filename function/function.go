@@ -41,7 +41,7 @@ func (f *Function) Build() ([]byte, error) {
 		return nil, err
 	}
 	dst := dir + "/.lox/main.exe"
-	buildCmd := "GOOS=windows GOARCH=386 go build " + "-o " + dst + " " + f.Path + "main.go"
+	buildCmd := `GOOS=windows GOARCH=386 go build -ldflags="-X github.com/wbuchwalter/lox.functionName=` + f.Name + `" ` + "-o " + dst + " " + f.Path + "main.go"
 	cmd := exec.Command("sh", "-c", buildCmd)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
@@ -123,6 +123,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 		Match match = regex.Match(err);
 		if (match.Success) {
 			log.Error(err);
+			log.Info(json);
 			return req.CreateResponse((HttpStatusCode)500, err);
 		} else {
 			log.Info(err);
@@ -133,7 +134,6 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 static async Task WriteToFileAsync(string text, TraceWriter log)
 {
     byte[] buffer = Encoding.UTF8.GetBytes(text);
-    log.Info("in:" + text);
     Int32 offset = 0;
     Int32 sizeOfBuffer = 4096;
     FileStream fileStream = null;
