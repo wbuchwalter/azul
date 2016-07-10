@@ -25,7 +25,7 @@ This configuration file looks like this:
 ```json
 {
   "name": "myfuncapp",
-  "username": "myfuncapp",
+  "username": "$myfuncapp",
   "password": "1xXA2heWo7dD3mSmlvLhZnwzqJXMmrwHxogFCrnAnCn0idmo2vXCbiLKqqtY"
 }
 ```
