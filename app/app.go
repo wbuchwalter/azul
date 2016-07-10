@@ -41,7 +41,13 @@ func (app *App) Deploy(f *function.Function) error {
 	}
 
 	//upload the heavier executable
-	return app.pushFile(bin, "main.exe", f.Name)
+	err = app.pushFile(bin, "main.exe", f.Name)
+	if err != nil {
+		return err
+	}
+
+	//TEMPORARY - BUG: project.json needs to be remodified to trigger a nuget restore...
+	return app.forceNugetRestore(f.Name, fMap["project.json"])
 }
 
 type CreateFunctionInput struct {
@@ -112,6 +118,18 @@ func (app *App) pushFile(buf []byte, fileName string, fnName string) error {
 	if err != nil {
 		return err
 	}
+	_, err = (&http.Client{}).Do(req)
+	return err
+}
+
+func (app *App) forceNugetRestore(functionName string, projectJSONContent string) error {
+	req, err := http.NewRequest(http.MethodPut, app.getAPIBaseURI()+"/vfs/site/wwwroot/"+functionName+"/project.json", bytes.NewBuffer([]byte(" "+projectJSONContent)))
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("If-Match", "*")
+
 	_, err = (&http.Client{}).Do(req)
 	return err
 }
