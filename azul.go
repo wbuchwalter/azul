@@ -1,4 +1,4 @@
-package lox
+package azul
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/wbuchwalter/lox/logs"
+	"github.com/wbuchwalter/azul/logs"
 )
 
 type handlerFn func(req json.RawMessage, logger logs.Logger) (interface{}, error)

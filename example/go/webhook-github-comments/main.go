@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/wbuchwalter/lox"
-	"github.com/wbuchwalter/lox/logs"
+	"github.com/wbuchwalter/azul"
+	"github.com/wbuchwalter/azul/logs"
 )
 
 type input struct {
@@ -20,7 +20,7 @@ type Output struct {
 }
 
 func main() {
-	lox.Handle(func(req json.RawMessage, logger logs.Logger) (interface{}, error) {
+	azul.Handle(func(req json.RawMessage, logger logs.Logger) (interface{}, error) {
 		var in input
 		var out Output
 

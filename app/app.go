@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/wbuchwalter/lox/function"
+	"github.com/wbuchwalter/azul/function"
 )
 
 //App represents an Azure Function App's configuration

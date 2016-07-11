@@ -7,7 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/wbuchwalter/lox/utils"
+	"github.com/wbuchwalter/azul/utils"
 )
 
 //Function represents an Azure Function
@@ -40,8 +40,8 @@ func (f *Function) Build() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	dst := dir + "/.lox/main.exe"
-	buildCmd := `GOOS=windows GOARCH=386 go build -ldflags="-X github.com/wbuchwalter/lox.functionName=` + f.Name + `" ` + "-o " + dst + " " + f.Path + "main.go"
+	dst := dir + "/.azul/main.exe"
+	buildCmd := `GOOS=windows GOARCH=386 go build -ldflags="-X github.com/wbuchwalter/azul.functionName=` + f.Name + `" ` + "-o " + dst + " " + f.Path + "main.go"
 	cmd := exec.Command("sh", "-c", buildCmd)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout

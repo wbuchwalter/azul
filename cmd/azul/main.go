@@ -15,8 +15,8 @@
 package main
 
 import (
-	_ "github.com/wbuchwalter/lox/cmd/lox/deploy"
-	"github.com/wbuchwalter/lox/cmd/lox/root"
+	_ "github.com/wbuchwalter/azul/cmd/azul/deploy"
+	"github.com/wbuchwalter/azul/cmd/azul/root"
 )
 
 func main() {

@@ -8,9 +8,9 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/wbuchwalter/lox/app"
-	"github.com/wbuchwalter/lox/cmd/lox/root"
-	"github.com/wbuchwalter/lox/function"
+	"github.com/wbuchwalter/azul/app"
+	"github.com/wbuchwalter/azul/cmd/azul/root"
+	"github.com/wbuchwalter/azul/function"
 )
 
 var deployCmd = &cobra.Command{
@@ -45,8 +45,8 @@ func init() {
 }
 
 func preRun(args []string, wd string) error {
-	if _, err := os.Stat(wd + "/lox.json"); os.IsNotExist(err) {
-		return errors.New("lox.json file not found")
+	if _, err := os.Stat(wd + "/azul.json"); os.IsNotExist(err) {
+		return errors.New("azul.json file not found")
 	}
 
 	for i := 0; i < len(args); i++ {
@@ -63,11 +63,6 @@ func checkFunctionSanity(wd string, dirname string) error {
 	if _, err := os.Stat(wd + "/" + dirname); os.IsNotExist(err) {
 		return errors.New("Function " + dirname + " not found.")
 	}
-
-	if _, err := os.Stat(wd + "/" + dirname + "/main.go"); os.IsNotExist(err) {
-		return errors.New("Function " + dirname + " found, but no main.go was present.")
-	}
-
 	return nil
 }
 
@@ -88,7 +83,7 @@ func run(args []string, wd string) error {
 }
 
 func getApp(wd string) (*app.App, error) {
-	file, err := os.Open(wd + "/lox.json")
+	file, err := os.Open(wd + "/azul.json")
 	if err != nil {
 		return nil, err
 	}

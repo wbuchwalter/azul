@@ -1,25 +1,25 @@
-> :warning: **Do not use in production**. `lox` is just a personal experiment at this time, probably full of bugs, and no support will be offered. :warning:
+> :warning: **Do not use in production**. `azul` is just a personal experiment at this time, probably full of bugs, and no support will be offered. :warning:
 
-## `lox`: Deploy and run Azure Functions using Golang.
+## `azul`: Deploy and run Azure Functions using Golang.
 
 ## Installation
-Get or update lox:
-`go get -u github.com/wbuchwalter/lox/cmd/lox`
+Get or update azul:
+`go get -u github.com/wbuchwalter/azul/cmd/azul`
 
 ## Example
 
-A `lox` project looks like this:
+A `azul` project looks like this:
 
 ```
 MyApp
-├── lox.json
+├── azul.json
 ├── foo
 │   └── main.go
 └── bar
     └── main.go
 ```
 
-`lox.json` will define on which Function App the `foo` and `bar` functions will be deployed.
+`azul.json` will define on which Function App the `foo` and `bar` functions will be deployed.
 This configuration file looks like this:
 
 ```json
@@ -38,7 +38,7 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/wbuchwalter/lox"
+	"github.com/wbuchwalter/azul"
 )
 
 type input struct {
@@ -50,7 +50,7 @@ type Output struct {
 }
 
 func main() {
-	lox.Handle(func(event json.RawMessage, logger logs.Logger) (interface{}, error) {
+	azul.Handle(func(event json.RawMessage, logger logs.Logger) (interface{}, error) {
 		var i input
 		var output Output
 
@@ -69,20 +69,20 @@ func main() {
 ```
 
 Deploy the function:  
-`lox deploy wordLength`
+`azul deploy wordLength`
 
 ## Limitations
 
 **Configuration**  
 
-Currently, `lox` only supports functions taking a request message as input (such as `httpTrigger`, `webHook`)
+Currently, `azul` only supports functions taking a request message as input (such as `httpTrigger`, `webHook`)
 
 More are probably coming... eventually :smiley: .
 
 **fmt**
 
 Do not use `fmt.Println` or similar functions writing to `stdin`.   
-`stdin` is reserver by `lox` to communicate between the go function and the .NET runtime.
+`stdin` is reserver by `azul` to communicate between the go function and the .NET runtime.
 Instead use the `logger` passed as parameter to your function.
 
 
@@ -92,10 +92,6 @@ Instead use the `logger` passed as parameter to your function.
 In the Azure portal, open your `Function App`, click on `Function App Settings` -> `Advanced Settings`-> `Properties`-> `DEPLOYMENT TRIGGER URL`.  
 The URL will look like this: `https://XXX:YYY@something.scm.azurewebsites.net/deploy`  
 `XXX` is your username (you need to include the `$` if any), `YYY` is your password.
-
-**Performance**  
-Zero efforts have been put in optimization, and no benchmark has been made. So I have no idea about the performances of `lox`.
-
 
 ## Credits
 Inspired by [TJ Holowaychuk](https://twitter.com/tjholowaychuk)'s [Apex](https://github.com/apex/apex).
