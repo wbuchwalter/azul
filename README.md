@@ -79,7 +79,7 @@ func main() {
 Deploy the function:  
 `azul deploy wordLength`
 
-## Limitations
+#### Limitations
 
 **Configuration**  
 
