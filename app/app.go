@@ -60,12 +60,12 @@ func (app *App) Deploy(f *function.Function) error {
 		}
 	}
 
+	fmt.Println("https://" + app.Name + ".azurewebsites.net/api/" + f.Name)
+
 	//TEMPORARY - BUG: project.json needs to be remodified to trigger a nuget restore...
 	if val, ok := fMap["project.json"]; ok {
 		return app.forceNugetRestore(f.Name, val.Content)
 	}
-
-	fmt.Println("https://" + app.Name + ".azurewebsites.net/api/" + f.Name)
 	return nil
 }
 
