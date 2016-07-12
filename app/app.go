@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -64,6 +65,7 @@ func (app *App) Deploy(f *function.Function) error {
 		return app.forceNugetRestore(f.Name, val.Content)
 	}
 
+	fmt.Println("https://" + app.Name + ".azurewebsites.net/api/" + f.Name)
 	return nil
 }
 

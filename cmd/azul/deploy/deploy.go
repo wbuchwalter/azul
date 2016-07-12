@@ -35,8 +35,6 @@ var deployCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-
-		fmt.Println("Succesfully deployed.")
 	},
 }
 

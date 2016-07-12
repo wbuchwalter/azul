@@ -20,7 +20,7 @@ func getDefaultConfig() function.Config {
 	var c function.Config
 	c.Disabled = false
 	c.Bindings = []function.Binding{
-		function.Binding{AuthLevel: "function", Name: "req", Type: "httpTrigger", Direction: "in"},
+		function.Binding{AuthLevel: "anonymous", Name: "req", Type: "httpTrigger", Direction: "in"},
 		function.Binding{Name: "res", Type: "http", Direction: "out"},
 	}
 	return c
