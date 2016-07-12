@@ -81,7 +81,8 @@ Deploy the function:
 
 ## Limitations
 
-* Currently, when using Golang, `azul` only supports functions taking a request message as input (such as `httpTrigger`, `webHook`)
+* With Golang, `azul` only supports functions taking a request message as input (such as `httpTrigger`, `webHook`)
+* Only `json` is supported as output for Golang Functions
 * When calling `azul deploy`, `azul` will only returns the correct URL if `authLevel` is set to `anonymous` in the `function.json` (this is the case by default)
 
 
