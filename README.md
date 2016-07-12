@@ -18,9 +18,9 @@ A `azul` project looks like this:
 ```
 MyApp
 ├── azul.json
-├── foo
+├── aFunc
 │   └── main.go
-└── bar
+└── anotherFunc
     └── index.js
 ```
 
@@ -36,7 +36,7 @@ This configuration file looks like this:
 ```
 
 
-## Golang
+## Golang Support
 
 `main.go` is where you define your actual function.
 Here is an example of a function that returns the length of a word:
