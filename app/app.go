@@ -69,6 +69,64 @@ func (app *App) Deploy(f *function.Function) error {
 	return nil
 }
 
+type logInfo struct {
+	Href string `json:"href"`
+	Name string `json:"name"`
+	Size int    `json:"size"`
+}
+
+//Logs returns the logs of the specified function
+func (app *App) Logs(f *function.Function) error {
+	serviceURI := app.getAPIBaseURI() + "vfs/logfiles/application/functions/function/hello-node/"
+	res, err := http.Get(serviceURI)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	var logInfos []logInfo
+	err = json.Unmarshal(b, &logInfos)
+	if err != nil {
+		return err
+	}
+
+	if len(logInfos) < 1 {
+		return errors.New("No logfiles available")
+	}
+
+	//always grab the first logfile for now...
+	lres, err := http.Get(serviceURI + logInfos[0].Name)
+	defer lres.Body.Close()
+	b, err = ioutil.ReadAll(lres.Body)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(b))
+	return nil
+}
+
+func (app *App) LogStream() error {
+
+	res, err := http.Get(app.getBaseURI() + "logstream")
+	if err != nil {
+		return err
+	}
+
+	//reader := bufio.NewReader(res.Body)
+	defer res.Body.Close()
+	p := make([]byte, 1)
+	_, err = res.Body.Read(p)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 //CreateFunctionInput : input for app.create
 type CreateFunctionInput struct {
 	FunctionName string            `json:"-"`
@@ -155,5 +213,9 @@ func (app *App) forceNugetRestore(functionName string, projectJSONContent string
 }
 
 func (app *App) getAPIBaseURI() string {
-	return "https://" + app.Username + ":" + app.Password + "@" + app.Name + ".scm.azurewebsites.net/api/"
+	return app.getBaseURI() + "api/"
+}
+
+func (app *App) getBaseURI() string {
+	return "https://" + app.Username + ":" + app.Password + "@" + app.Name + ".scm.azurewebsites.net/"
 }

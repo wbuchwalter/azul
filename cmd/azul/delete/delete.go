@@ -7,18 +7,17 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/wbuchwalter/azul/cmd/azul/root"
 	"github.com/wbuchwalter/azul/cmd/azul/utils"
-	"github.com/wbuchwalter/azul/function"
 )
 
-var deployCmd = &cobra.Command{
-	Use:     "deploy <funcName>",
-	Short:   "deploy the specified function to Azure",
+var cmd = &cobra.Command{
+	Use:     "delete <funcName>",
+	Short:   "deprovision the specified function",
 	PreRunE: preRun,
 	RunE:    run,
 }
 
 func init() {
-	root.RootCmd.AddCommand(deployCmd)
+	root.RootCmd.AddCommand(cmd)
 }
 
 func run(cmd *cobra.Command, args []string) error {
@@ -32,9 +31,7 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	f := function.Function{Name: args[0], Path: wd + "/" + args[0] + "/"}
-
-	return app.Deploy(&f)
+	return app.Delete(args[0])
 }
 
 func preRun(cmd *cobra.Command, args []string) error {
@@ -48,15 +45,8 @@ func preRun(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(args) != 1 {
-		return errors.New("deploy should be call with one argument")
+		return errors.New("delete should be call with one argument")
 	}
 
-	return checkFunctionSanity(wd, args[0])
-}
-
-func checkFunctionSanity(wd string, dirname string) error {
-	if _, err := os.Stat(wd + "/" + dirname); os.IsNotExist(err) {
-		return errors.New("Function " + dirname + " not found")
-	}
 	return nil
 }

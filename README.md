@@ -2,6 +2,11 @@
 
 ## `azul`: Deploy and run Azure Functions using Golang.
 
+## Features
+* Write Functions with Golang (not supported natively)
+* Deploy/Delete Functions
+* Logs
+
 ## Installation
 Get or update azul:
 `go get -u github.com/wbuchwalter/azul/cmd/azul`
@@ -16,10 +21,10 @@ MyApp
 ├── foo
 │   └── main.go
 └── bar
-    └── main.go
+    └── index.js
 ```
 
-`azul.json` will define on which Function App the `foo` and `bar` functions will be deployed.
+`azul.json` will define on which Function App the `foo` and `bar` functions should be deployed.
 This configuration file looks like this:
 
 ```json
@@ -29,6 +34,9 @@ This configuration file looks like this:
   "password": "1xXA2heWo7dD3mSmlvLhZnwzqJXMmrwHxogFCrnAnCn0idmo2vXCbiLKqqtY"
 }
 ```
+
+
+## Golang
 
 `main.go` is where you define your actual function.
 Here is an example of a function that returns the length of a word:
