@@ -4,10 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
-	"os/exec"
-
-	"github.com/mitchellh/go-homedir"
-	"github.com/wbuchwalter/azul/utils"
 )
 
 //Function represents an Azure Function
@@ -25,43 +21,27 @@ type Config struct {
 
 //Binding represents a function's binding
 type Binding struct {
-	AuthLevel   string `json:"authLevel"`
+	AuthLevel   string `json:"authLevel,omitempty"`
 	Name        string `json:"name"`
 	Type        string `json:"type"`
 	Direction   string `json:"direction"`
-	WebHookType string `json:"webHookType"`
+	WebHookType string `json:"webHookType,omitempty"`
 }
 
-type filesMap map[string]string
-
-//Build main.go in a temp folder, read the bytes, delete the file
-func (f *Function) Build() ([]byte, error) {
-	dir, err := homedir.Dir()
-	if err != nil {
-		return nil, err
-	}
-	dst := dir + "/.azul/main.exe"
-	buildCmd := `GOOS=windows GOARCH=386 go build -ldflags="-X github.com/wbuchwalter/azul.functionName=` + f.Name + `" ` + "-o " + dst + " " + f.Path + "main.go"
-	cmd := exec.Command("sh", "-c", buildCmd)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	err = cmd.Run()
-	if err != nil {
-		return nil, err
-	}
-	bin, err := utils.GetFileBytes(dst)
-	if err != nil {
-		return nil, err
-	}
-
-	return bin, os.Remove(dst)
+type FuncFile struct {
+	IsHeavy  bool
+	BContent []byte
+	Content  string
 }
+
+type FilesMap map[string]FuncFile
 
 // LoadConfig loads the config of the function stored in function.json.
 // If no function.json is present, this will fallback to default values
-func (f *Function) LoadConfig() error {
-	f.defaults()
+func (f *Function) LoadConfig(defaultConfig Config) error {
+
 	if _, err := os.Stat(f.Path + "function.json"); os.IsNotExist(err) {
+		f.Config = defaultConfig
 		return nil
 	}
 
@@ -76,72 +56,4 @@ func (f *Function) LoadConfig() error {
 	}
 
 	return json.Unmarshal(b, &f.Config)
-}
-
-func (f *Function) defaults() {
-	f.Config.Disabled = false
-	f.Config.Bindings = []Binding{
-		Binding{AuthLevel: "function", Name: "req", Type: "httpTrigger", Direction: "in"},
-		Binding{Name: "res", Type: "http", Direction: "out"},
-	}
-}
-
-// GetPredefinedFiles returns predefined files
-func (f *Function) GetPredefinedFiles() filesMap {
-	fMap := make(filesMap)
-
-	fMap["project.json"] = `{ "frameworks": { "net46":{ "dependencies": { "Newtonsoft.Json": "9.0.1" } } } }`
-	fMap["run.csx"] = `using System.Net;
-using System.Diagnostics;
-using System;
-using System.Text.RegularExpressions;
-using System.IO;
-using Newtonsoft.Json;
-using System.Text;
-using Newtonsoft.Json.Linq;
-
-public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
-{
-    Process process = new Process();
-    process.StartInfo.FileName = "D:/home/site/wwwroot/` + f.Name + `/main.exe";
-
-    var data = await req.Content.ReadAsStringAsync();
-    await WriteToFileAsync(data, log);
-    
-    process.StartInfo.RedirectStandardOutput = true;
-		process.StartInfo.RedirectStandardError = true;
-    process.StartInfo.UseShellExecute = false;
-    process.Start(); 
-    string json = "";
-    string err = "";
-    while ( ! process.HasExited ) {
-        json += process.StandardOutput.ReadToEnd();
-        err += process.StandardError.ReadToEnd();
-    }
-
-		Regex regex = new Regex(@"^\[Error\]");
-		Match match = regex.Match(err);
-		if (match.Success) {
-			log.Error(err);
-			log.Info(json);
-			return req.CreateResponse((HttpStatusCode)500, err);
-		} else {
-			log.Info(err);
-			return req.CreateResponse((HttpStatusCode)200, json);	
-		}
-}
-
-static async Task WriteToFileAsync(string text, TraceWriter log)
-{
-    byte[] buffer = Encoding.UTF8.GetBytes(text);
-    Int32 offset = 0;
-    Int32 sizeOfBuffer = 4096;
-    FileStream fileStream = null;
-
-    fileStream = new FileStream("D:/home/site/wwwroot/` + f.Name + `/tmp", FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: sizeOfBuffer, useAsync: true);
-    await fileStream.WriteAsync(buffer, offset, buffer.Length);
-    fileStream.Dispose();
-}`
-
-	return fMap
 }

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/wbuchwalter/azul/build"
 	"github.com/wbuchwalter/azul/function"
 )
 
@@ -20,50 +21,67 @@ type App struct {
 
 //Deploy (re)deploys a function
 func (app *App) Deploy(f *function.Function) error {
-	//build before anything else.
-	//If the custom code doesn't build, we can fail cleanly without impacting what is already deployed
-	bin, err := f.Build()
+	fMap, defaultConf, err := build.Build(f)
 	if err != nil {
 		return err
 	}
 
-	err = f.LoadConfig()
+	err = f.LoadConfig(defaultConf)
 	if err != nil {
 		return err
 	}
 
-	fMap := f.GetPredefinedFiles()
+	//contains all 'light' files as string
+	lightMap := make(map[string]string)
 
-	//create the function and push config + predefined files
-	err = app.create(f, fMap)
+	//contains all `heavy` fils as bytes (such as executables)
+	heavyMap := make(map[string][]byte)
+
+	for n, fi := range fMap {
+		if fi.IsHeavy {
+			heavyMap[n] = fi.BContent
+		} else {
+			lightMap[n] = fi.Content
+		}
+	}
+
+	//create the function with config + 'light' files
+	err = app.create(f, lightMap)
 	if err != nil {
 		return err
 	}
 
-	//upload the heavier executable
-	err = app.pushFile(bin, "main.exe", f.Name)
-	if err != nil {
-		return err
+	//upload the heavier files throught vfs api
+	for n, b := range heavyMap {
+		err = app.pushFile(b, n, f.Name)
+		if err != nil {
+			return err
+		}
 	}
 
 	//TEMPORARY - BUG: project.json needs to be remodified to trigger a nuget restore...
-	return app.forceNugetRestore(f.Name, fMap["project.json"])
+	if val, ok := fMap["project.json"]; ok {
+		return app.forceNugetRestore(f.Name, val.Content)
+	}
+
+	return nil
 }
 
 //CreateFunctionInput : input for app.create
 type CreateFunctionInput struct {
 	FunctionName string            `json:"-"`
-	Files        map[string]string `json:"files"`
+	RawFiles     map[string]string `json:"files"`
 	Config       *json.RawMessage  `json:"config"`
 }
 
-func (app *App) create(f *function.Function, fMap map[string]string) error {
+func (app *App) create(f *function.Function, rawMap map[string]string) error {
 	config, err := json.Marshal(f.Config)
 	if err != nil {
 		return err
 	}
 	rc := json.RawMessage(config)
-	input := CreateFunctionInput{FunctionName: f.Name, Config: &rc, Files: fMap}
+
+	input := CreateFunctionInput{FunctionName: f.Name, Config: &rc, RawFiles: rawMap}
 	m, err := json.Marshal(&input)
 	if err != nil {
 		return err
