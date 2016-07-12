@@ -79,11 +79,9 @@ func main() {
 Deploy the function:  
 `azul deploy wordLength`
 
-#### Limitations
+## Limitations
 
-**Configuration**  
-
-* Currently, `azul` only supports functions taking a request message as input (such as `httpTrigger`, `webHook`)
+* Currently, when using Golang, `azul` only supports functions taking a request message as input (such as `httpTrigger`, `webHook`)
 * When calling `azul deploy`, `azul` will only returns the correct URL if `authLevel` is set to `anonymous` in the `function.json` (this is the case by default)
 
 
