@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/wbuchwalter/azul"
-	"github.com/wbuchwalter/azul/logs"
+	"github.com/wbuchwalter/azul/azul-go"
+	"github.com/wbuchwalter/azul/azul-go/logs"
 )
 
 type input struct {

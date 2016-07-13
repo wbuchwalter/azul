@@ -77,7 +77,7 @@ type logInfo struct {
 
 //Logs returns the logs of the specified function
 func (app *App) Logs(f *function.Function) error {
-	serviceURI := app.getAPIBaseURI() + "vfs/logfiles/application/functions/function/hello-node/"
+	serviceURI := app.getAPIBaseURI() + "vfs/logfiles/application/functions/function/" + f.Name + "/"
 	res, err := http.Get(serviceURI)
 	if err != nil {
 		return err
@@ -91,6 +91,7 @@ func (app *App) Logs(f *function.Function) error {
 	var logInfos []logInfo
 	err = json.Unmarshal(b, &logInfos)
 	if err != nil {
+		fmt.Println(string(b))
 		return err
 	}
 

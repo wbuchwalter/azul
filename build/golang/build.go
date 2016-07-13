@@ -19,7 +19,9 @@ func Build(f *function.Function) (function.FilesMap, function.Config, error) {
 		return nil, conf, err
 	}
 	dst := dir + "/.azul/main.exe"
-	buildCmd := `GOOS=windows GOARCH=386 go build -ldflags="-X github.com/wbuchwalter/azul.functionName=` + f.Name + `" ` + "-o " + dst + " " + f.Path + "main.go"
+
+	//-ldflags should be removed once C# -> Go communication is not done via a file anymore
+	buildCmd := `GOOS=windows GOARCH=386 go build -ldflags="-X github.com/wbuchwalter/azul/azul-go.FunctionName=` + f.Name + `" ` + "-o " + dst + " " + f.Path + "main.go"
 	cmd := exec.Command("sh", "-c", buildCmd)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
@@ -71,10 +73,10 @@ func getBootstrapFiles(f *function.Function) function.FilesMap {
       process.StartInfo.RedirectStandardError = true;
       process.StartInfo.UseShellExecute = false;
       process.Start(); 
-      string json = "";
+      string output = "";
       string err = "";
       while ( ! process.HasExited ) {
-          json += process.StandardOutput.ReadToEnd();
+          output += process.StandardOutput.ReadToEnd();
           err += process.StandardError.ReadToEnd();
       }
 
@@ -82,11 +84,10 @@ func getBootstrapFiles(f *function.Function) function.FilesMap {
       Match match = regex.Match(err);
       if (match.Success) {
         log.Error(err);
-        log.Info(json);
         return req.CreateResponse((HttpStatusCode)500, err);
       } else {
         log.Info(err);
-        return req.CreateResponse((HttpStatusCode)200, json);	
+        return req.CreateResponse((HttpStatusCode)200, output);	
       }
   }
 

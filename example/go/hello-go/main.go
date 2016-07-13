@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/wbuchwalter/azul"
-	"github.com/wbuchwalter/azul/logs"
+	"github.com/wbuchwalter/azul/azul-go"
+	"github.com/wbuchwalter/azul/azul-go/logs"
 )
 
 type event struct {
@@ -16,6 +16,7 @@ type response struct {
 }
 
 func main() {
+	//	azul.FunctionName = "lol"
 	azul.Handle(func(raw json.RawMessage, logger logs.Logger) (interface{}, error) {
 		var input event
 		err := json.Unmarshal(raw, &input)
