@@ -9,7 +9,7 @@
 
 ## Demo
 
-![demo](demo.gif)
+![demo](demo2.gif)
 
 ## Installation
 Get or update azul:
