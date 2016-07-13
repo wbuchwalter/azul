@@ -1,11 +1,15 @@
 > :warning: **Do not use in production**. `azul` is just a personal experiment at this time, probably full of bugs, and no support will be offered. :warning:
 
-## `azul`: Deploy and run Azure Functions using Golang.
+## `azul`: Deploy and run Azure Functions easily.
 
 ## Features
 * Write Functions with Golang (not supported natively)
 * Deploy/Delete Functions
 * Logs
+
+## Demo
+
+![demo](demo.gif)
 
 ## Installation
 Get or update azul:
